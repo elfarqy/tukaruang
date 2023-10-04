@@ -24,6 +24,10 @@ class ApiController extends Controller
     public function behaviors()
     {
         $behaviors = parent::behaviors();
+        unset($behaviors['authenticator']);
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::class,
+        ];
 
         $behaviors['authenticator'] = [
             'class'       => CompositeAuth::class,
@@ -35,17 +39,18 @@ class ApiController extends Controller
             ]
         ];
 
+
         return $behaviors;
     }
 
-    protected function verbs()
-    {
-        return [
-            'login' => ['post'],
-            'buy'   => ['post'],
-            'sell'   => ['post'],
-        ];
-    }
+//    protected function verbs()
+//    {
+//        return [
+//            'login' => ['post'],
+//            'buy'   => ['post'],
+//            'sell'   => ['post'],
+//        ];
+//    }
 
     public function actionLogin()
     {
