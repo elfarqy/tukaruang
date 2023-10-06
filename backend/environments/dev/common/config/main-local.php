@@ -4,7 +4,7 @@ return [
     'components' => [
         'db' => [
             'class' => 'yii\db\Connection',
-            'dsn' => 'pgsql:host=db_postgre;dbname=kitabisa',
+            'dsn' => 'pgsql:host=kb_postgres;dbname=kitabisa',
             'username' => 'root',
             'password' => 'random',
             'charset' => 'utf8',
