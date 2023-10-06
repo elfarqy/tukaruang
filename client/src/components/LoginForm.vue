@@ -14,7 +14,7 @@ export default {
   methods: {
   async login() {
     try {
-      const response = await axios.post("http://kb.ved/api/login", {
+      const response = await axios.post("http://localhost:8081/backend/backend/web/api/login", {
         username: this.username,
         password: this.password,
       });
@@ -38,7 +38,7 @@ export default {
 
 <template>
   <div class="login-form">
-    <h2>Login</h2>
+    <h2>Nuker Duit</h2>
     <form @submit.prevent="login">
       <input type="text" v-model="username" placeholder="Username" required />
       <input type="password" v-model="password" placeholder="Password" required />

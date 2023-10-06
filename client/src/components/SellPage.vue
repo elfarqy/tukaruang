@@ -82,7 +82,7 @@
             }
         };
   
-          const response = await axios.post('http://kb.ved/api/sell', formData, config);
+          const response = await axios.post('http://localhost:8081/backend/backend/web/api/sell', formData, config);
         //   console.log(response.message);
           if (response.status === 200) {
             this.$toast.success(response.data.message);

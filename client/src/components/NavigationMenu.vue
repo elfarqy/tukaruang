@@ -1,12 +1,14 @@
 <!-- NavigationMenu.vue -->
 <template>
-    <nav>
-      <router-link to="/dashboard" v-if="authenticated">Dashboard</router-link>
-      <router-link to="/summary" v-if="authenticated">Summary</router-link>
-      <router-link to="/buy" v-if="authenticated">Buy</router-link>
-      <router-link to="/sell" v-if="authenticated">Sell</router-link>
-      <router-link to="/login" v-if="!authenticated">Login</router-link>
-      <router-link to="/logout" v-if="authenticated"><Logout /></router-link>
+    <nav class="navbar">
+      <ul>
+      <li><router-link to="/dashboard" v-if="authenticated">Dashboard</router-link></li>
+      <li><router-link to="/summary" v-if="authenticated">Summary</router-link></li>
+      <li><router-link to="/buy" v-if="authenticated">Buy</router-link></li>
+      <li><router-link to="/sell" v-if="authenticated">Sell</router-link></li>
+      <li><router-link to="/login" v-if="!authenticated">Login</router-link></li>
+      <li><router-link to="/logout" v-if="authenticated"><Logout /></router-link></li>
+      </ul>
     </nav>
   </template>
   

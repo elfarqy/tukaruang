@@ -4,7 +4,8 @@ import App from './App.vue'
 import router from './router'
 import 'vue-toast-notification/dist/theme-default.css'; // Import toast notification styles
 import VueToast from 'vue-toast-notification';
-
+import 'water.css/out/light.css';
+import './assets/site.css';
 
 const app = createApp(App)
 
