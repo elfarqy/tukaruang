@@ -37,6 +37,19 @@ services:
     entrypoint: ["/bin/sh","/var/www/html/backend/entrypoint.sh"]
     networks:
       - kb_network
+  kb_node:
+    build:
+      context: ./
+      dockerfile: ./node/Dockerfile  
+    container_name: "kb-node"
+    restart: unless-stopped
+    ports:
+      - 8082:8080
+    volumes:
+      - ./client:/app
+    # entrypoint: ["/bin/sh","/app/entrypoint.sh"]
+    networks:
+      - kb_network
 
 volumes:
   postgres:
