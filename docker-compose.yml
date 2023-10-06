@@ -1,0 +1,46 @@
+version: '3.5'
+
+services:
+  kb_postgres:
+    image: postgres
+    restart: unless-stopped
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=random
+    ports:
+      - 5432:5432
+    networks:
+      - kb_network
+  kb_adminer:
+    build: ./adminer
+    container_name: "kb-adminer"
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./adminer/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    networks:
+      - kb_network
+  kb_php:
+    build:
+      context: ./
+      dockerfile: ./php/Dockerfile  
+    container_name: "kb-php"
+    restart: unless-stopped
+    ports:
+      - 8081:80
+    volumes:
+      - ./backend:/var/www/html/backend
+    entrypoint: ["/bin/sh","/var/www/html/backend/entrypoint.sh"]
+    networks:
+      - kb_network
+
+volumes:
+  postgres:
+
+
+networks:
+  kb_network:
