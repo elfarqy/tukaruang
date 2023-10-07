@@ -6,6 +6,7 @@ use backend\models\LoginModel;
 use backend\models\UserTransactionModel;
 use backend\utils\ErrorFormatter;
 use backend\utils\HttpException;
+use backend\utils\ReservedCurrency;
 use backend\utils\Response;
 use common\models\LoginForm;
 use common\models\User;
@@ -146,19 +147,62 @@ class ApiController extends Controller
 
     public function actionSummary()
     {
-        $query = (new Query())->select(['user_id', 'user_transaction_id', 'message', 'created_at'])->from('activity')
-            ->where(['is not', 'user_transaction_id', null]);
+        $request = Yii::$app->request;
 
-        $count = $query->count();
+        $startDate = $request->get('start_date', null);
+        $endDate   = $request->get('end_date', null);
+        $startDate = ($startDate) ? \Yii::$app->formatter->asDate($startDate, 'php:Y-m-d') . ' 00:00:00' : null;
+        $endDate = ($endDate) ? \Yii::$app->formatter->asDate($endDate, 'php:Y-m-d') . ' 23:59:59' : null;
 
-        $pagination = new Pagination(['totalCount' => $count, 'defaultPageSize' => 10]);
-
-        $objects = $query->offset($pagination->offset)
-            ->limit($pagination->limit)
+        $userId = Yii::$app->user->identity->getId();
+        $querySell = (new Query())
+            ->select('sum(amount * current_price) as total, type, currency_source')
+            ->from('user_transaction')
+            ->leftJoin('activity', 'activity.user_transaction_id = user_transaction.id')
+            ->where(['activity.user_id' => $userId])
+            ->andWhere(['type' => 'sell'])
+            ->andWhere(['in', 'currency_source', ReservedCurrency::getList()])
+            ->andFilterWhere(['between', 'user_transaction.created_at', $startDate, $endDate])
+            ->groupBy('currency_source, type')
             ->all();
 
-        $pageCount = $pagination->pageCount;
-        $currentPage = $pagination->page + 1;
+        $queryBuy = (new Query())
+            ->select('sum(amount * current_price) as total, type, currency_source')
+            ->from('user_transaction')
+            ->leftJoin('activity', 'activity.user_transaction_id = user_transaction.id')
+            ->where(['activity.user_id' => $userId])
+            ->andWhere(['type' => 'buy'])
+            ->andWhere(['in', 'currency_source', ReservedCurrency::getList()])
+            ->andFilterWhere(['between', 'user_transaction.created_at', $startDate, $endDate])
+            ->groupBy('currency_source, type')
+            ->all();
+        $indexedSell = ArrayHelper::index($querySell, 'currency_source');
+        $indexedBuy = ArrayHelper::index($queryBuy, 'currency_source');
+
+        $responseData = [];
+
+        foreach (ReservedCurrency::getList() as $value){
+            $dataToSet =[
+                'currency' => $value,
+                'totalSell' => 0,
+                'totalBuy' => 0,
+            ];
+
+            if (array_key_exists($value, $indexedSell)){
+                $dataToSet['totalSell'] = (int) $indexedSell[$value]['total'];
+            }
+
+
+            if (array_key_exists($value, $indexedBuy)){
+                $dataToSet['totalBuy'] = (int) $indexedBuy[$value]['total'];
+            }
+
+            $dataToSet['amount'] = $dataToSet['totalBuy'] - $dataToSet['totalSell'];
+
+            $responseData[] = $dataToSet;
+
+        }
+
 
         $response          = new Response();
         $response->name    = 'Success';
@@ -166,12 +210,7 @@ class ApiController extends Controller
         $response->code    = '001';
         $response->status  = 200;
         $response->data    = [
-            'total_page'  => $pageCount,
-            'lastPage' => $pageCount,
-            'nextPage'    => $currentPage < $pageCount ? $currentPage + 1 :  $pageCount,
-            'currentPage' => $currentPage,
-            'prevPage'    => $currentPage >= 2 ? $currentPage - 1 : $currentPage,
-            'results'     => ArrayHelper::toArray($objects),
+            'results'     => $responseData,
         ];
 
         return $response;
